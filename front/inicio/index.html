@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Flores del Guadiana - Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+            background-color: #fff;
+        }
+        .logo {
+            width: 300px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 250px;
+        }
+        button {
+            padding: 10px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <img src="../images/logo.png" alt="Logo" class="logo">
+    </div>
+    <div class="form-container">
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" placeholder="Ingresa tu usuario">
+        
+        <label for="contrasena">Contraseña</label>
+        <input type="password" id="contrasena" placeholder="Ingresa tu contraseña">
+        
+        <button onclick="iniciarSesion()">Iniciar sesión</button>
+        <p id="mensaje" style="color: red;"></p>
+    </div>
+
+    <script>
+        async function iniciarSesion() {
+            const usuario = document.getElementById('usuario').value.trim();
+            const contrasena = document.getElementById('contrasena').value.trim();
+            const mensaje = document.getElementById('mensaje');
+
+            if (!usuario || !contrasena) {
+                mensaje.textContent = "Por favor completa ambos campos.";
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('usuario', usuario);
+                formData.append('contrasena', contrasena);
+
+                const response = await fetch('http://127.0.0.1/floreria/apiinicio.php?accion=buscar_usuario', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === "ok") {
+                    mensaje.style.color = 'green';
+                    mensaje.textContent = "Inicio de sesión exitoso";
+                    // Redirigir a home
+                    window.location.href = "../home/home.html";
+                } else {
+                    mensaje.style.color = 'red';
+                    mensaje.textContent = data.mensaje || "Usuario o contraseña incorrectos";
+                }
+            } catch (error) {
+                mensaje.textContent = "Error al conectar con el servidor.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
