@@ -1,7 +1,7 @@
 // URL base de la API
 const API_URL = "http://localhost/floreria/apiproducto.php";
 
-// Cuando cargue la página, lista todos los productos
+//  lista todos los productos
 document.addEventListener("DOMContentLoaded", cargarProductos);
 
 // Cargar todos los productos
@@ -37,7 +37,7 @@ function mostrarProductos(productos) {
     tbody.innerHTML = "";
 
     if (!Array.isArray(productos) || productos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5">No hay productos para mostrar</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">No hay productos para mostrar</td></tr>`;
         return;
     }
 
@@ -48,14 +48,16 @@ function mostrarProductos(productos) {
             <td>${prod.nombre}</td>
             <td>$${prod.precio}</td>
             <td>${prod.descripcion}</td>
+            <td>${prod.categoria}</td>
             <td>
-                <button class="btn" onclick="editarProducto(${prod.id}, '${prod.nombre}', ${prod.precio}, '${prod.descripcion}')">Editar</button>
+                <button class="btn" onclick="editarProducto(${prod.id}, '${prod.nombre}', ${prod.precio}, '${prod.descripcion}', '${prod.categoria}')">Editar</button>
                 <button class="btn btn-danger" onclick="eliminarProducto(${prod.id})">Eliminar</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
+
 
 // Guardar (agregar o editar) producto
 function guardarProducto() {
@@ -69,7 +71,13 @@ function guardarProducto() {
         return;
     }
 
-    const datos = { nombre, precio: parseFloat(precio), descripcion };
+    const datos = { 
+    nombre, 
+    precio: parseFloat(precio), 
+    descripcion, 
+    categoria: document.getElementById("categoria").value.trim()
+};
+
 
     if(id) { 
         // Editar
@@ -87,27 +95,23 @@ function guardarProducto() {
         })
         .catch(err => console.error("Error al actualizar producto:", err));
     } else {
-        // Agregar
-       
-    const formData = new FormData();
-    formData.append("accion", "agregar_producto"); // si tu API requiere accion
-    formData.append("nombre", nombre);
-    formData.append("precio", precio);
-    formData.append("descripcion", descripcion);
-
+    // Agregar
     fetch(API_URL, {
         method: 'POST',
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos) // datos incluye categoria
     })
-    .then(r => r.json())
-    .then(res => {
-        alert(res.mensaje || res);
+    .then(res => res.json())
+    .then(data => {
+        alert(data.mensaje || data.error);
         cargarProductos();
         cancelarEdicion();
     })
     .catch(err => console.error("Error al agregar producto:", err));
 }
-}
+
+    }
+
 
 // Llenar formulario para edición
 function editarProducto(id, nombre, precio, descripcion) {

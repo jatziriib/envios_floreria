@@ -19,7 +19,6 @@ switch ($method) {
 
         switch ($accion) {
             case 'registrar_usuario':
-                // Leer datos del body (JSON o form-data)
                 $input = json_decode(file_get_contents('php://input'), true);
                 $usuario = $input["usuario"] ?? ($_POST["usuario"] ?? "");
                 $contrasena = $input["contrasena"] ?? ($_POST["contrasena"] ?? "");

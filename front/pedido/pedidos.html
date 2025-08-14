@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Pedidos</title>
+    <link rel="stylesheet" href="pedidos.css">
+</head>
+<body>
+
+<h1>Gestión de Pedidos</h1>
+ <div class="logo">
+        <a href="../home/home.html">
+            <img src="../images/logo.png" alt="Logo FG">
+        </a>
+    </div>
+
+<div class="main-container">
+    <!-- Panel izquierdo: buscador + tabla -->
+    <div class="left-panel">
+        <div class="search-box">
+            <input type="text" id="buscarPedido" placeholder="Buscar por nombre de quien recibe...">
+            <button onclick="buscarPedido()">Buscar</button>
+            <button onclick="cargarPedidos()">Recargar</button>
+        </div>
+
+        <table id="tablaPedidos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Método Pago</th>
+                    <th>Estado Pago</th>
+                    <th>Total</th>
+                    <th>Fecha Envío</th>
+                    <th>Recibe</th>
+                    
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Panel derecho: formulario -->
+    <div class="right-panel">
+        <form id="formPedido">
+            <h2>Registrar Pedido</h2>
+            <input type="number" id="id_usuario" placeholder="ID Usuario" required>
+            <input type="text" id="metodo_pago" placeholder="Método de Pago" required>
+            <input type="text" id="estado_pago" placeholder="Estado del Pago" required>
+            <input type="number" id="costo_envio" placeholder="Costo de Envío" required>
+            <input type="number" id="total" placeholder="Total" required>
+            <input type="date" id="fecha_envio" required>
+            <input type="text" id="lugar" placeholder="Lugar" required>
+            <input type="text" id="descripcion" placeholder="Descripción" required>
+            <input type="text" id="recibe" placeholder="Recibe" required>
+            <button type="submit">Guardar Pedido</button>
+        </form>
+    </div>
+</div>
+
+<script src="pedidos.js"></script>
+</body>
+</html>

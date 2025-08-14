@@ -1,11 +1,10 @@
 <?php
-header("Content-Type: application/json; charset=utf-8");
+header("Content-Type: application/json");
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Leer JSON de entrada
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Conexión a la BD
+// Conexión
 $conn = new mysqli("localhost", "root", "", "floreria", 3308);
 if ($conn->connect_error) {
     echo json_encode(["error" => "Conexión fallida"]);
@@ -18,7 +17,8 @@ switch ($method) {
         switch ($accion) {
             case 'producto':
                 $result = $conn->query("SELECT * FROM producto");
-                echo json_encode($result->fetch_all(MYSQLI_ASSOC));
+                $producto = $result->fetch_all(MYSQLI_ASSOC);
+                echo json_encode($producto);
                 break;
 
             case 'buscar_producto':
@@ -28,52 +28,63 @@ switch ($method) {
                     $stmt->bind_param("s", $nombre);
                     $stmt->execute();
                     $result = $stmt->get_result();
-                    echo json_encode($result->fetch_all(MYSQLI_ASSOC));
+                    $datos = $result->fetch_all(MYSQLI_ASSOC);
+                    echo json_encode($datos);
                 } else {
                     echo json_encode(["error" => "Parámetro faltante"]);
                 }
                 break;
+
+            default:
+                echo json_encode(["error" => "Acción no válida"]);
         }
         break;
 
     case 'POST':
-        if (isset($input['nombre'], $input['precio'], $input['descripcion'])) {
-            $stmt = $conn->prepare("INSERT INTO producto (nombre, precio, descripcion) VALUES (?, ?, ?)");
-            $stmt->bind_param("sds", $input['nombre'], $input['precio'], $input['descripcion']);
-            $mensaje = $stmt->execute()
-                ? ["mensaje" => "Producto registrado correctamente"]
-                : ["error" => "Producto no registrado"];
-            echo json_encode($mensaje);
-        } else {
-            echo json_encode(["error" => "Faltan campos"]);
+        if (!isset($input['nombre'], $input['precio'], $input['descripcion'], $input['categoria'])) {
+            echo json_encode(["error" => "Faltan campos obligatorios"]);
+            exit;
         }
+        $stmt = $conn->prepare("INSERT INTO producto (nombre, precio, descripcion, categoria) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("sdss", $input['nombre'], $input['precio'], $input['descripcion'], $input['categoria']);
+        $mensaje = $stmt->execute() ? "Producto registrado" : "Producto no registrado";
+        echo json_encode(["mensaje" => $mensaje]);
         break;
 
     case 'PUT':
-        if (isset($input['id'], $input['nombre'], $input['precio'], $input['descripcion'])) {
-            $stmt = $conn->prepare("UPDATE producto SET nombre = ?, precio = ?, descripcion = ? WHERE id = ?");
-            $stmt->bind_param("sdsi", $input['nombre'], $input['precio'], $input['descripcion'], $input['id']);
-            $stmt->execute();
-            echo json_encode(
-                $stmt->affected_rows > 0
-                    ? ["mensaje" => "Producto actualizado correctamente"]
-                    : ["error" => "Producto no encontrado o sin cambios"]
-            );
+        if (!isset($input['id'], $input['nombre'], $input['precio'], $input['descripcion'], $input['categoria'])) {
+            echo json_encode(["error" => "Faltan campos obligatorios"]);
+            exit;
+        }
+        $stmt = $conn->prepare("UPDATE producto SET nombre = ?, precio = ?, descripcion = ?, categoria = ? WHERE id = ?");
+        $stmt->bind_param("sdssi", $input['nombre'], $input['precio'], $input['descripcion'], $input['categoria'], $input['id']);
+        $stmt->execute();
+
+        if ($stmt->affected_rows > 0) {
+            echo json_encode(["mensaje" => "Producto actualizado correctamente"]);
         } else {
-            echo json_encode(["error" => "Faltan campos"]);
+            echo json_encode(["mensaje" => "Producto no encontrado o sin cambios"]);
         }
         break;
 
     case 'DELETE':
-        if (isset($input['id'])) {
-            $stmt = $conn->prepare("DELETE FROM producto WHERE id = ?");
-            $stmt->bind_param("i", $input['id']);
-            $stmt->execute();
+        if (!isset($input['id'])) {
+            echo json_encode(["error" => "ID del producto no proporcionado"]);
+            exit;
+        }
+        $stmt = $conn->prepare("DELETE FROM producto WHERE id = ?");
+        $stmt->bind_param("i", $input['id']);
+        $stmt->execute();
+
+        if ($stmt->affected_rows > 0) {
             echo json_encode(["mensaje" => "Producto eliminado correctamente"]);
         } else {
-            echo json_encode(["error" => "ID del producto no proporcionado"]);
+            echo json_encode(["mensaje" => "Producto no encontrado"]);
         }
         break;
+
+    default:
+        echo json_encode(["error" => "Método no permitido"]);
 }
 
 $conn->close();
