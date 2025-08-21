@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Repartidores</title>
+    <link rel="stylesheet" href="repartidores.css">
+</head>
+<body>
+ 
+
+    <h2>Gestión de Repartidores</h2>
+      <div class="logo">
+        <a href="../home/home.html">
+            <img src="../images/logo.png" alt="Logo FG">
+        </a>
+    </div>
+
+    <div class="container">
+        <!-- Tabla -->
+        <div class="table-container">
+            <h3>Lista de Repartidores</h3>
+            <input type="text" id="buscarNombre" placeholder="Buscar por nombre" oninput="buscarRepartidor()">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ID Pedido</th>
+                        <th>Nombre</th>
+                        <th>Celular</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaRepartidores">
+                    <tr><td colspan="6">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Formulario -->
+        <div class="form-container">
+            <h3 id="formTitle">Agregar Repartidor</h3>
+            <div class="form-group">
+                <label>ID Pedido</label>
+                <input type="number" id="id_pedido" placeholder="ID del Pedido">
+            </div>
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="nombre" placeholder="Nombre">
+            </div>
+            <div class="form-group">
+                <label>Celular</label>
+                <input type="text" id="celular" placeholder="Celular">
+            </div>
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="fecha">
+            </div>
+            <input type="hidden" id="repartidorId">
+            <button class="btn" onclick="guardarRepartidor()">Guardar</button>
+            <button class="btn btn-danger" onclick="cancelarEdicion()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="repartidores.js"></script>
+</body>
+</html>

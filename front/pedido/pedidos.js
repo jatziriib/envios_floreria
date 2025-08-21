@@ -1,94 +1,158 @@
-const API_URL = "http://localhost/floreria/pedidos.php";
+const API_URL = "http://localhost/floreria/api_pedidos_detalle.php";
 
-// Carga los pedidos
-async function cargarPedidos() {
-    try {
-        const res = await fetch(`${API_URL}?accion=pedidos`);
-        const data = await res.json();
+let pedidoEditando = null; 
 
-        const tbody = document.querySelector("#tablaPedidos tbody");
-        tbody.innerHTML = "";
+document.addEventListener("DOMContentLoaded", cargarPedidos);
 
-        data.forEach(pedido => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${pedido.id}</td>
-                <td>${pedido.id_usuario}</td>
-                <td>${pedido.metodo_pago}</td>
-                <td>${pedido.estado_pago}</td>
-                <td>${pedido.total}</td>
-                <td>${pedido.fecha_envio}</td>
-                <td>${pedido.recibe}</td>
-                
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        console.error("Error al obtener pedidos:", error);
-    }
+function cargarPedidos() {
+    fetch(`${API_URL}?accion=pedidos`)
+        .then(r => r.json())
+        .then(mostrarPedidos)
+        .catch(err => console.error(err));
 }
 
-// Buscar pedido por nombre de quien recibe
-async function buscarPedido() {
-    const recibe = document.getElementById("buscarPedido").value.trim();
-    if (!recibe) return cargarPedidos();
-
-    try {
-        const res = await fetch(`${API_URL}?accion=buscar_pedido&recibe=${encodeURIComponent(recibe)}`);
-        const data = await res.json();
-
-        const tbody = document.querySelector("#tablaPedidos tbody");
-        tbody.innerHTML = "";
-
-        data.forEach(pedido => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${pedido.id}</td>
-                <td>${pedido.id_usuario}</td>
-                <td>${pedido.metodo_pago}</td>
-                <td>${pedido.estado_pago}</td>
-                <td>${pedido.total}</td>
-                <td>${pedido.fecha_envio}</td>
-                <td>${pedido.recibe}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        console.error("Error al buscar pedido:", error);
-    }
+function buscarPedido() {
+    const recibe = document.getElementById("buscarRecibe").value.trim();
+    fetch(`${API_URL}?accion=buscar_pedido&recibe=${encodeURIComponent(recibe)}`)
+        .then(r => r.json())
+        .then(mostrarPedidos)
+        .catch(err => console.error(err));
 }
 
-// Registrar pedido (POST)
-document.getElementById("formPedido").addEventListener("submit", async (e) => {
-    e.preventDefault();
+function mostrarPedidos(pedidos) {
+    const tbody = document.querySelector("#tablaPedidos tbody");
+    tbody.innerHTML = "";
+    if (!pedidos.length) {
+        tbody.innerHTML = `<tr><td colspan="7">No hay pedidos</td></tr>`;
+        return;
+    }
+    pedidos.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.recibe}</td>
+            <td>${p.fecha_envio}</td>
+            <td>
+                ${p.productos && p.productos.length 
+                    ? p.productos.map(prod => `${prod.nombre} (x${prod.cantidad})`).join("<br>")
+                    : "Sin productos"}
+            </td>
+            <td>${p.total_final}</td>
+            <td>${p.estado_pago}</td>
+            <td>
+                <button class="btn btn-warning" onclick="cargarParaEditar(${p.id})">Editar</button>
+                <button class="btn btn-danger" onclick="eliminarPedido(${p.id})">Eliminar</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
-    const pedido = {
-        id_usuario: document.getElementById("id_usuario").value,
-        metodo_pago: document.getElementById("metodo_pago").value,
-        estado_pago: document.getElementById("estado_pago").value,
-        costo_envio: document.getElementById("costo_envio").value,
-        total: document.getElementById("total").value,
-        fecha_envio: document.getElementById("fecha_envio").value,
-        lugar: document.getElementById("lugar").value,
-        descripcion: document.getElementById("descripcion").value,
-        recibe: document.getElementById("recibe").value
+
+function agregarProducto(id_producto = "", cantidad = "") {
+    const div = document.createElement("div");
+    div.classList.add("form-group");
+    div.innerHTML = `
+        <label>ID Producto:</label>
+        <input type="number" class="id_producto" value="${id_producto}">
+        <label>Cantidad:</label>
+        <input type="number" class="cantidad" value="${cantidad}">
+    `;
+    document.getElementById("productosContainer").appendChild(div);
+}
+
+function guardarPedido() {
+    const id_usuario = parseInt(document.getElementById("id_usuario").value);
+    const metodo_pago = document.getElementById("metodo_pago").value.trim();
+    const estado_pago = document.getElementById("estado_pago").value.trim();
+    const costo_envio = parseFloat(document.getElementById("costo_envio").value);
+    const fecha_envio = document.getElementById("fecha_envio").value;
+    const lugar = document.getElementById("lugar").value.trim();
+    const descripcion = document.getElementById("descripcion").value.trim();
+    const recibe = document.getElementById("recibe").value.trim();
+
+    const productos = [];
+    document.querySelectorAll("#productosContainer .form-group").forEach(grupo => {
+        const id_producto = parseInt(grupo.querySelector(".id_producto").value);
+        const cantidad = parseInt(grupo.querySelector(".cantidad").value);
+        if (id_producto && cantidad) {
+            productos.push({ id_producto, cantidad });
+        }
+    });
+
+    const datos = {
+        id_usuario,
+        metodo_pago,
+        estado_pago,
+        costo_envio,
+        fecha_envio,
+        lugar,
+        descripcion,
+        recibe,
+        productos
     };
 
-    try {
-        const res = await fetch(`${API_URL}?accion=registrar_pedido`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(pedido)
-        });
-
-        const data = await res.json();
-        alert(data.mensaje || "Pedido registrado");
-        cargarPedidos();
-        e.target.reset();
-    } catch (error) {
-        console.error("Error al registrar pedido:", error);
+    let metodo = 'POST';
+    if (pedidoEditando) {
+        metodo = 'PUT';
+        datos.id_pedido = pedidoEditando;
     }
-});
 
-// Cargar pedidos al iniciar
-cargarPedidos();
+    fetch(API_URL, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos)
+    })
+    .then(r => r.json())
+    .then(res => {
+        alert(res.message || res.error);
+        limpiarFormulario();
+        cargarPedidos();
+    })
+    .catch(err => console.error(err));
+}
+
+function eliminarPedido(id) {
+    if (!confirm("¿Eliminar este pedido?")) return;
+    fetch(`${API_URL}?id=${id}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(res => {
+            alert(res.message || res.error);
+            cargarPedidos();
+        })
+        .catch(err => console.error(err));
+}
+
+function cargarParaEditar(id) {
+    fetch(`${API_URL}?accion=pedidos`)
+        .then(r => r.json())
+        .then(pedidos => {
+            const pedido = pedidos.find(p => p.id == id);
+            if (!pedido) return alert("Pedido no encontrado");
+
+            pedidoEditando = id;
+
+            document.getElementById("id_usuario").value = pedido.id_usuario;
+            document.getElementById("metodo_pago").value = pedido.metodo_pago;
+            document.getElementById("estado_pago").value = pedido.estado_pago;
+            document.getElementById("costo_envio").value = pedido.costo_envio;
+            document.getElementById("fecha_envio").value = pedido.fecha_envio;
+            document.getElementById("lugar").value = pedido.lugar;
+            document.getElementById("descripcion").value = pedido.descripcion;
+            document.getElementById("recibe").value = pedido.recibe;
+
+            document.getElementById("productosContainer").innerHTML = "";
+            if (pedido.productos) {
+                pedido.productos.forEach(prod => {
+                    agregarProducto(prod.id_producto, prod.cantidad);
+                });
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+function limpiarFormulario() {
+    pedidoEditando = null;
+    document.getElementById("formPedido").reset();
+    document.getElementById("productosContainer").innerHTML = "";
+}

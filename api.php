@@ -89,3 +89,4 @@ switch($method){
             }
             break;
 }
+$conn->close();

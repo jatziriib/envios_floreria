@@ -100,7 +100,7 @@ document.getElementById("buscador").addEventListener("input", async function () 
     }
 
     try {
-        const res = await fetch(`http://127.0.0.1/floreria/api.php?accion=buscar_usuario&nombre=${encodeURIComponent(nombre)}`);
+        const res = await fetch(`http://localhost/floreria/api.php?accion=buscar_usuario&nombre=${encodeURIComponent(nombre)}`);
         const data = await res.json();
 
         const tabla = document.getElementById("clientesTabla");

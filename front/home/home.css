@@ -123,8 +123,8 @@ header {
 .buttons button {
     background: #f8faef;
     border: none;
-    padding: 20px;
-    font-size: 16px;
+    padding: 40px;
+    font-size: 20px;
     border-radius: 8px;
     cursor: pointer;
     box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
