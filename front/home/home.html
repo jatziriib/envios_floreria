@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Florería</title>
     <link rel="stylesheet" href="home.css">
+    <style>
+        /* --- Estilos básicos para probar --- */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { display: flex; justify-content: space-between; align-items: center; background: #f4f4f4; padding: 10px 20px; }
+        .logo img { height: 50px; }
+        nav button { padding: 5px 10px; cursor: pointer; }
+        .menu-icon { cursor: pointer; font-size: 24px; }
+        main { padding: 20px; }
+        .envios { margin-bottom: 20px; }
+        .envio { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
+        .pendiente { color: red; font-weight: bold; }
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .calendar-section { border: 1px solid #ccc; padding: 10px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .calendar { width: 100%; border-collapse: collapse; }
+        .calendar th, .calendar td { border: 1px solid #ccc; text-align: center; padding: 8px; }
+        .calendar td.marked { background: #ffeeba; cursor: pointer; font-weight: bold; }
+        .buttons button { display: block; width: 100%; padding: 10px; margin-bottom: 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
     <!-- Encabezado -->
@@ -20,20 +39,8 @@
 
     <main>
         <!-- Lista de envíos -->
-        <section class="envios">
-            <div class="envio">
-                <span>Valeria</span>
-                <span>Arreglo Dulce Despertar</span>
-                <span>10 am</span>
-                <span class="pendiente">Pendiente</span>
-            </div>
-            <div class="envio">
-                <span>Valeria</span>
-                <span>Arreglo Dulce Despertar</span>
-                <span>10 am</span>
-                <span class="pendiente">Pendiente</span>
-            </div>
-        </section>
+         <section id="lista-envios" class="lista-envios"> <p>Selecciona un día en el calendario para ver sus envíos.</p></section>
+
 
         <!-- Contenedor calendario + botones -->
         <section class="main-grid">
@@ -70,6 +77,8 @@
         </section>
     </main>
 
-    <script src="home.js"></script>
+    <script src="home.js">
+       
+    </script>
 </body>
 </html>

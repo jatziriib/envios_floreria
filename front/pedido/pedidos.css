@@ -61,3 +61,14 @@
 .logo img {
     height: 90px;
 }
+.btn-pdf {
+   background-color: #007bff;
+   color: white;
+   padding: 5px 10px;
+   border: none;
+   border-radius: 5px;
+   cursor: pointer;
+}
+.btn-pdf:hover {
+   background-color: #0056b3;
+}
