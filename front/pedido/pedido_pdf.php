@@ -9,7 +9,7 @@ if ($conn->connect_error) {
 
 $id = intval($_GET['id']);
 
-// Obtener datos del pedido incluyendo costo de envío
+// --- Obtener datos del pedido incluyendo costo de envío ---
 $sql = "SELECT p.id, p.recibe, p.fecha_envio, p.lugar, p.descripcion, 
                p.metodo_pago, p.estado_pago, p.costo_envio, v.total_final
         FROM pedido p
@@ -17,7 +17,15 @@ $sql = "SELECT p.id, p.recibe, p.fecha_envio, p.lugar, p.descripcion,
         WHERE p.id = $id";
 $pedido = $conn->query($sql)->fetch_assoc();
 
-// Obtener productos del detalle incluyendo precio unitario
+// --- Obtener celular del usuario ---
+$stmt = $conn->prepare("SELECT celular FROM usuario WHERE nombre = ?");
+$stmt->bind_param("s", $pedido['recibe']);
+$stmt->execute();
+$result = $stmt->get_result();
+$usuario = $result->fetch_assoc();
+$celular_usuario = $usuario['celular'] ?? 'No registrado';
+
+// --- Obtener productos del detalle incluyendo precio unitario ---
 $productos = $conn->query("
     SELECT pr.nombre, pr.precio AS precio_unitario, d.cantidad
     FROM detalle d
@@ -25,15 +33,13 @@ $productos = $conn->query("
     WHERE d.id_pedido = $id
 ");
 
-// Crear PDF
+// --- Crear PDF ---
 $pdf = new FPDF();
 $pdf->AddPage();
 
 // --- Logo y datos de la empresa ---
-$pdf->Image('../images/logo.png', 10, 8, 40); // Logo más grande
+$pdf->Image('../images/logo.png', 10, 8, 40); 
 $pdf->SetFont('Helvetica','B',12);
-
-// Datos empresa alineados a la derecha del logo
 $pdf->SetXY(55, 10);
 $pdf->Cell(0,6,utf8_decode('Flores del Guadiana'),0,1,'L');
 $pdf->SetX(55);
@@ -50,15 +56,16 @@ $pdf->Ln(10);
 
 // --- Título ---
 $pdf->SetFont('Helvetica','B',16);
-$pdf->Cell(0,10,utf8_decode("NOTA DE VENTA - Pedido #".$pedido['id']),0,1,'C');
+$pdf->Cell(0,10,utf8_decode("NOTA DE VENTA"),0,1,'C');
 $pdf->Ln(5);
 
-// --- Datos del pedido (tabla dinámica) ---
+// --- Tabla de datos del pedido ---
 $pdf->SetFont('Helvetica','B',12);
 $pdf->SetFillColor(230,230,230);
 
 $datosPedido = [
     ["Recibe", $pedido['recibe']],
+    ["Celular", $celular_usuario],
     ["Fecha de Envío", $pedido['fecha_envio']],
     ["Lugar", $pedido['lugar']],
     ["Método de Pago", $pedido['metodo_pago']],
@@ -68,11 +75,12 @@ $datosPedido = [
 
 foreach($datosPedido as $dato){
     $pdf->Cell(50,8,utf8_decode($dato[0]),1,0,'C',true);
-    $pdf->MultiCell(130,8,utf8_decode($dato[1]),1,'L'); // Ajusta altura según texto
+    $pdf->MultiCell(130,8,utf8_decode($dato[1]),1,'L');
 }
 
-// --- Tabla de productos ---
 $pdf->Ln(5);
+
+// --- Tabla de productos ---
 $pdf->SetFont('Helvetica','B',12);
 $pdf->SetFillColor(200,220,255);
 $pdf->Cell(80,10,utf8_decode("Producto"),1,0,'C',true);
@@ -86,10 +94,9 @@ while($row = $productos->fetch_assoc()){
     $subtotal = $row['cantidad'] * $row['precio_unitario'];
     $subtotal_total += $subtotal;
 
-    // Ajuste dinámico de altura según texto del producto
     $pdf->MultiCell(80,8,utf8_decode($row['nombre']),1);
     $y_current = $pdf->GetY();
-    $pdf->SetY($y_current-8); // Volver a la misma línea
+    $pdf->SetY($y_current-8);
     $pdf->SetX(90);
     $pdf->Cell(30,8,$row['cantidad'],1,0,'C');
     $pdf->Cell(30,8,number_format($row['precio_unitario'],2),1,0,'C');
