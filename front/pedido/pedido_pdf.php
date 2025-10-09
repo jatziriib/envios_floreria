@@ -37,22 +37,26 @@ $productos = $conn->query("
 $pdf = new FPDF();
 $pdf->AddPage();
 
-// --- Logo y datos de la empresa ---
-$pdf->Image('../images/logo.png', 10, 8, 40); 
-$pdf->SetFont('Helvetica','B',12);
-$pdf->SetXY(55, 10);
-$pdf->Cell(0,6,utf8_decode('Flores del Guadiana'),0,1,'L');
-$pdf->SetX(55);
-$pdf->SetFont('Helvetica','',11);
-$pdf->Cell(0,6,utf8_decode('Ma. Manuela Guereca Campos'),0,1,'L');
-$pdf->SetX(55);
-$pdf->Cell(0,6,utf8_decode('Prol. Libertad No. 213 Nte. Fracc. La Forestal C.P.34217'),0,1,'L');
-$pdf->SetX(55);
-$pdf->Cell(0,6,utf8_decode('Of. (618) 129-01-22 Cel. (618) 364-52-38'),0,1,'L');
-$pdf->SetX(55);
-$pdf->Cell(0,6,utf8_decode('Y (618) 309-13-47 Durango Dgo'),0,1,'L');
+// 🔹 Función para imprimir logo y datos de empresa
+function imprimirEncabezadoEmpresa($pdf) {
+    $pdf->Image('../images/logo.png', 10, 8, 40); 
+    $pdf->SetFont('Helvetica','B',12);
+    $pdf->SetXY(55, 10);
+    $pdf->Cell(0,6,utf8_decode('Flores del Guadiana'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->SetFont('Helvetica','',11);
+    $pdf->Cell(0,6,utf8_decode('Ma. Manuela Guereca Campos'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Prol. Libertad No. 213 Nte. Fracc. La Forestal C.P.34217'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Of. (618) 129-01-22 Cel. (618) 364-52-38'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Y (618) 309-13-47 Durango Dgo'),0,1,'L');
+    $pdf->Ln(10);
+}
 
-$pdf->Ln(10);
+// --- Imprimir encabezado inicial ---
+imprimirEncabezadoEmpresa($pdf);
 
 // --- Título ---
 $pdf->SetFont('Helvetica','B',16);
@@ -78,7 +82,31 @@ foreach($datosPedido as $dato){
     $pdf->MultiCell(130,8,utf8_decode($dato[1]),1,'L');
 }
 
-$pdf->Ln(5);
+// 🔹 Verificar posición actual antes de reimprimir encabezado
+$y_actual = $pdf->GetY();
+if ($y_actual > 200) { 
+    // Si ya estamos muy abajo, agregamos nueva página para evitar corte
+    $pdf->AddPage();
+    $y_actual = 10;
+}
+$pdf->SetY($y_actual + 10); // deja espacio extra
+
+// 🔹 Reimprimir encabezado (más compacto para no ocupar tanto)
+$pdf->Image('../images/logo.png', 10, $pdf->GetY(), 25);
+$pdf->SetXY(40, $pdf->GetY() + 2);
+$pdf->Cell(0,6,utf8_decode('Flores del Guadiana '),0,1,'L');
+
+$pdf->SetFont('Helvetica','',11);
+$pdf->SetX(55);
+        $pdf->Cell(0,6,utf8_decode('Ma. Manuela Guereca Campos'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Prol. Libertad No. 213 Nte. Fracc. La Forestal C.P.34217'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Of. (618) 129-01-22 Cel. (618) 364-52-38'),0,1,'L');
+    $pdf->SetX(55);
+    $pdf->Cell(0,6,utf8_decode('Y (618) 309-13-47 Durango Dgo'),0,1,'L');
+    $pdf->Ln(10);
+
 
 // --- Tabla de productos ---
 $pdf->SetFont('Helvetica','B',12);
@@ -94,13 +122,16 @@ while($row = $productos->fetch_assoc()){
     $subtotal = $row['cantidad'] * $row['precio_unitario'];
     $subtotal_total += $subtotal;
 
+    // Guardar posición actual antes de imprimir línea de producto
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
     $pdf->MultiCell(80,8,utf8_decode($row['nombre']),1);
-    $y_current = $pdf->GetY();
-    $pdf->SetY($y_current-8);
-    $pdf->SetX(90);
-    $pdf->Cell(30,8,$row['cantidad'],1,0,'C');
-    $pdf->Cell(30,8,number_format($row['precio_unitario'],2),1,0,'C');
-    $pdf->Cell(40,8,number_format($subtotal,2),1,1,'C');
+    $y_new = $pdf->GetY();
+    $height = $y_new - $y;
+    $pdf->SetXY($x + 80, $y);
+    $pdf->Cell(30,$height,$row['cantidad'],1,0,'C');
+    $pdf->Cell(30,$height,number_format($row['precio_unitario'],2),1,0,'C');
+    $pdf->Cell(40,$height,number_format($subtotal,2),1,1,'C');
 }
 
 // --- Costo de envío ---
